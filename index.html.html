@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Da Cruz à Coroa — jornada interativa de grupo pelos Salmos 22, 23 e 24. Série Orações Matinais.">
+<title>Da Cruz à Coroa — Salmos 22, 23 e 24</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#F3E9D6;
+  --ivory-dim:#C9BBA0;
+  --gold:#D9A93E;
+  --gold-bright:#F0CE72;
+  --ink:#0C0A12;
+  --display:'Cinzel', 'Times New Roman', serif;
+  --body:'EB Garamond', Georgia, serif;
+
+  /* tema corrente (alterado por JS conforme o movimento) */
+  --bg-a:#1a1325;
+  --bg-b:#0c0a12;
+  --accent:#D9A93E;
+  --accent-soft:rgba(217,169,62,.16);
+  --glow:rgba(217,169,62,.22);
+}
+
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{
+  margin:0; min-height:100vh;
+  font-family:var(--body);
+  color:var(--ivory);
+  background:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* luz litúrgica — fundo que transita por movimento */
+.sky{
+  position:fixed; inset:0; z-index:-2;
+  background:
+    radial-gradient(130% 90% at 50% -10%, var(--bg-a) 0%, var(--bg-b) 60%, #07060c 100%);
+  transition:background 1.6s ease;
+}
+.aurora{
+  position:fixed; inset:-20% -10% auto -10%; height:80vh; z-index:-1;
+  background:radial-gradient(45% 55% at 50% 0%, var(--glow) 0%, transparent 70%);
+  filter:blur(6px); opacity:.9;
+  transition:background 1.6s ease;
+  animation:breathe 12s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes breathe{ 0%,100%{ transform:translateY(-2%) scale(1);} 50%{ transform:translateY(2%) scale(1.06);} }
+.stars{ position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.5; }
+
+/* ---------- barra de progresso / trilha ---------- */
+.rail{
+  position:sticky; top:0; z-index:30;
+  display:flex; align-items:center; gap:0;
+  padding:14px clamp(14px,4vw,40px);
+  backdrop-filter:blur(8px);
+  background:linear-gradient(to bottom, rgba(7,6,12,.72), rgba(7,6,12,0));
+}
+.brand{
+  font-family:var(--display); font-weight:600; letter-spacing:.14em;
+  font-size:13px; color:var(--ivory); white-space:nowrap; margin-right:auto;
+  text-transform:uppercase;
+}
+.brand small{ display:block; font-family:var(--body); font-size:10px; letter-spacing:.34em; color:var(--gold); margin-top:2px; }
+.steps{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
+.step{
+  appearance:none; border:none; cursor:pointer; background:transparent;
+  width:11px; height:11px; border-radius:50%;
+  border:1.5px solid rgba(243,233,214,.35);
+  transition:all .35s ease; padding:0; position:relative;
+}
+.step:hover{ border-color:var(--gold); transform:scale(1.15); }
+.step.done{ background:rgba(217,169,62,.55); border-color:var(--gold); }
+.step.active{ background:var(--gold); border-color:var(--gold-bright); box-shadow:0 0 0 4px var(--accent-soft); transform:scale(1.25); }
+.step .tip{
+  position:absolute; top:20px; left:50%; transform:translateX(-50%);
+  font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  white-space:nowrap; color:var(--ivory-dim); opacity:0; pointer-events:none;
+  transition:opacity .25s; font-family:var(--body);
+}
+.step:hover .tip, .step.active .tip{ opacity:1; }
+
+/* ---------- palco ---------- */
+.stage{
+  max-width:920px; margin:0 auto;
+  padding:clamp(28px,6vh,70px) clamp(20px,5vw,44px) 200px;
+  min-height:74vh;
+}
+.station{ display:none; animation:rise .9s cubic-bezier(.16,.8,.3,1) both; }
+.station.show{ display:block; }
+@keyframes rise{ from{ opacity:0; transform:translateY(26px);} to{ opacity:1; transform:none;} }
+
+.eyebrow{
+  font-family:var(--body); text-transform:uppercase; letter-spacing:.42em;
+  font-size:11px; color:var(--gold); margin-bottom:18px;
+}
+h1{
+  font-family:var(--display); font-weight:700;
+  font-size:clamp(38px,8vw,76px); line-height:1.02; margin:0;
+  letter-spacing:.02em; color:var(--ivory);
+  text-shadow:0 2px 30px rgba(0,0,0,.5);
+}
+h2{
+  font-family:var(--display); font-weight:600;
+  font-size:clamp(28px,5vw,46px); line-height:1.08; margin:.1em 0 .2em;
+  color:var(--ivory);
+}
+.movt-num{
+  font-family:var(--body); font-style:italic; color:var(--gold);
+  letter-spacing:.2em; font-size:14px; text-transform:uppercase;
+}
+.lead{ font-size:clamp(18px,2.4vw,22px); line-height:1.7; color:var(--ivory); max-width:62ch; }
+p{ font-size:clamp(16px,2vw,19px); line-height:1.78; color:var(--ivory-dim); max-width:64ch; }
+strong{ color:var(--ivory); font-weight:600; }
+
+.verse{
+  font-style:italic; font-size:clamp(20px,3vw,27px); line-height:1.5;
+  color:var(--ivory); margin:30px 0; padding:6px 0 6px 26px;
+  border-left:2px solid var(--accent); max-width:60ch;
+}
+.verse .ref{
+  display:block; font-style:normal; font-family:var(--display);
+  font-size:12px; letter-spacing:.24em; color:var(--gold); margin-top:12px;
+}
+
+.emblema{ margin:6px 0 22px; }
+.emblema svg{ display:block; }
+
+.tags{ display:flex; flex-wrap:wrap; gap:10px; margin:24px 0; }
+.tag{
+  font-family:var(--body); font-size:15px; letter-spacing:.02em;
+  padding:8px 16px; border:1px solid rgba(243,233,214,.22); border-radius:30px;
+  color:var(--ivory); background:rgba(243,233,214,.04);
+}
+.sintese{
+  margin:28px 0 4px; font-family:var(--display); font-weight:500;
+  font-size:clamp(19px,2.6vw,24px); color:var(--gold-bright); letter-spacing:.03em;
+}
+
+/* botões */
+.btn{
+  appearance:none; cursor:pointer; font-family:var(--display); font-weight:500;
+  letter-spacing:.12em; text-transform:uppercase; font-size:13px;
+  padding:15px 30px; border-radius:2px; transition:all .3s ease;
+  border:1px solid var(--gold); color:var(--ink);
+  background:linear-gradient(180deg, var(--gold-bright), var(--gold));
+  box-shadow:0 6px 24px -10px var(--glow);
+}
+.btn:hover{ transform:translateY(-2px); box-shadow:0 12px 30px -12px var(--glow); }
+.btn.ghost{
+  background:transparent; color:var(--ivory); border-color:rgba(243,233,214,.4);
+}
+.btn.ghost:hover{ border-color:var(--gold); color:var(--gold-bright); }
+.btn.small{ padding:11px 20px; font-size:11px; }
+
+/* navegação prev/next */
+.nav{
+  position:fixed; bottom:0; left:0; right:0; z-index:25;
+  display:flex; justify-content:space-between; align-items:center; gap:14px;
+  padding:18px clamp(16px,5vw,44px);
+  background:linear-gradient(to top, rgba(7,6,12,.92), rgba(7,6,12,0));
+  pointer-events:none;
+}
+.nav .btn{ pointer-events:auto; }
+.nav .spacer{ flex:1; }
+
+/* ---------- tríades interativas ---------- */
+.lens-tabs{ display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 26px; }
+.lens{
+  appearance:none; cursor:pointer; font-family:var(--body); font-size:15px;
+  padding:9px 18px; border-radius:30px; transition:all .25s;
+  border:1px solid rgba(243,233,214,.25); background:transparent; color:var(--ivory-dim);
+}
+.lens:hover{ color:var(--ivory); border-color:var(--gold); }
+.lens.on{ background:var(--accent-soft); border-color:var(--gold); color:var(--gold-bright); }
+.triade{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.col{
+  border:1px solid rgba(243,233,214,.14); border-radius:8px; padding:22px 20px;
+  background:rgba(243,233,214,.03); position:relative; overflow:hidden;
+  animation:rise .6s both;
+}
+.col:before{ content:""; position:absolute; top:0; left:0; right:0; height:4px; }
+.col.s22:before{ background:#A23A4C; } .col.s23:before{ background:#3E8C66; } .col.s24:before{ background:var(--gold); }
+.col .sx{ font-family:var(--display); font-size:12px; letter-spacing:.2em; color:var(--gold); }
+.col .ct{ font-family:var(--display); font-size:22px; margin:6px 0 10px; color:var(--ivory); }
+.col p{ font-size:15.5px; line-height:1.6; margin:0; color:var(--ivory-dim); }
+@media(max-width:680px){ .triade{ grid-template-columns:1fr; } }
+
+/* ---------- roda de reflexão ---------- */
+.spheres{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 22px; }
+.drawbox{
+  border:1px solid rgba(243,233,214,.16); border-radius:12px;
+  background:rgba(243,233,214,.035); padding:clamp(22px,4vw,34px); margin-top:8px;
+  position:relative; min-height:150px;
+}
+.drawbox .q-sphere{ font-family:var(--display); font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--gold); }
+.drawbox .q-text{
+  font-family:var(--body); font-style:italic; font-size:clamp(20px,3vw,28px);
+  line-height:1.45; color:var(--ivory); margin:14px 0 22px; min-height:1.4em;
+}
+.drawbox .placeholder{ color:var(--ivory-dim); font-style:italic; font-size:18px; }
+textarea{
+  width:100%; min-height:96px; resize:vertical; margin-top:6px;
+  font-family:var(--body); font-size:17px; line-height:1.6; color:var(--ivory);
+  background:rgba(12,10,18,.5); border:1px solid rgba(243,233,214,.2);
+  border-radius:8px; padding:14px 16px;
+}
+textarea:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--accent-soft); }
+.row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; align-items:center; }
+
+.saved{ margin-top:28px; }
+.saved h4{ font-family:var(--display); font-size:14px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin:0 0 12px; }
+.entry{
+  border-left:2px solid var(--accent); padding:4px 0 4px 16px; margin-bottom:18px;
+  animation:rise .5s both;
+}
+.entry .e-q{ font-style:italic; color:var(--ivory); font-size:17px; margin-bottom:4px; }
+.entry .e-a{ color:var(--ivory-dim); font-size:16px; white-space:pre-wrap; }
+.entry .e-meta{ font-family:var(--display); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+.empty-note{ color:var(--ivory-dim); font-style:italic; }
+
+/* ---------- caminhos práticos ---------- */
+.paths{ display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; margin-top:14px; }
+.path{
+  border:1px solid rgba(243,233,214,.14); border-radius:10px; padding:22px;
+  background:rgba(243,233,214,.03); transition:all .3s; cursor:pointer;
+}
+.path:hover{ border-color:var(--gold); transform:translateY(-3px); }
+.path.on{ background:var(--accent-soft); border-color:var(--gold); }
+.path .pn{ font-family:var(--display); color:var(--gold); font-size:13px; letter-spacing:.14em; }
+.path .pt{ font-family:var(--display); font-size:20px; color:var(--ivory); margin:6px 0 8px; }
+.path p{ font-size:15px; line-height:1.55; margin:0; }
+.path .check{ margin-top:14px; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--ivory-dim); font-family:var(--display); }
+.path.on .check{ color:var(--gold-bright); }
+.path .check:before{ content:"○  "; }
+.path.on .check:before{ content:"●  "; }
+.quote-soft{ font-style:italic; color:var(--ivory); border-left:2px solid var(--accent); padding-left:18px; margin:22px 0; }
+
+/* ---------- bênção ---------- */
+.tricolon{ text-align:center; margin:34px 0; }
+.tricolon .tl{ font-family:var(--display); font-size:clamp(24px,4vw,34px); margin:14px 0; color:var(--ivory); }
+.tricolon .tl span{ display:block; font-family:var(--body); font-style:italic; font-size:14px; letter-spacing:.18em; color:var(--gold); margin-top:4px; text-transform:uppercase; }
+.amem{ text-align:center; font-family:var(--display); font-weight:600; font-size:clamp(34px,7vw,58px); color:var(--gold-bright); margin:30px 0 10px; letter-spacing:.06em; }
+.center{ text-align:center; }
+.center .lead, .center p{ margin-left:auto; margin-right:auto; }
+
+/* ---------- música ---------- */
+.music{
+  position:fixed; right:18px; bottom:84px; z-index:40;
+  display:flex; align-items:center; gap:10px;
+}
+.music-btn{
+  appearance:none; cursor:pointer; width:54px; height:54px; border-radius:50%;
+  border:1px solid var(--gold); color:var(--gold-bright);
+  background:rgba(12,10,18,.7); backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center; transition:all .3s;
+}
+.music-btn:hover{ background:var(--accent-soft); transform:scale(1.06); }
+.music-btn.playing{ color:var(--ink); background:linear-gradient(180deg,var(--gold-bright),var(--gold)); }
+.music-lbl{
+  font-family:var(--display); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ivory-dim); background:rgba(12,10,18,.7); padding:7px 12px; border-radius:20px;
+  backdrop-filter:blur(6px); max-width:0; overflow:hidden; white-space:nowrap; opacity:0; transition:all .35s;
+}
+.music:hover .music-lbl{ max-width:240px; opacity:1; }
+.eqbar{ display:inline-flex; gap:2px; align-items:flex-end; height:16px; }
+.eqbar i{ width:3px; background:currentColor; height:5px; border-radius:2px; }
+.music-btn.playing .eqbar i{ animation:eq .9s ease-in-out infinite; }
+.music-btn.playing .eqbar i:nth-child(2){ animation-delay:.2s; }
+.music-btn.playing .eqbar i:nth-child(3){ animation-delay:.4s; }
+.music-btn.playing .eqbar i:nth-child(4){ animation-delay:.1s; }
+@keyframes eq{ 0%,100%{ height:5px; } 50%{ height:15px; } }
+
+.facilitator{
+  margin-top:36px; padding:18px 22px; border:1px dashed rgba(243,233,214,.22);
+  border-radius:10px; background:rgba(243,233,214,.02); max-width:64ch;
+}
+.facilitator b{ font-family:var(--display); letter-spacing:.08em; font-size:13px; text-transform:uppercase; color:var(--gold); }
+.facilitator p{ margin:.5em 0 0; font-size:16px; }
+
+a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(217,169,62,.4); }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+}
+@media print{
+  .rail,.nav,.music,.aurora,.stars{ display:none !important; }
+  .station{ display:block !important; page-break-after:always; }
+  body{ background:#fff; color:#111; }
+  .lead,p,.entry .e-a{ color:#222; }
+}
+</style>
+</head>
+<body>
+<div class="sky"></div>
+<div class="aurora"></div>
+<canvas class="stars" id="stars"></canvas>
+
+<!-- TRILHA -->
+<header class="rail">
+  <div class="brand">Da Cruz à Coroa<small>Série Orações Matinais</small></div>
+  <nav class="steps" id="steps" aria-label="Etapas da jornada"></nav>
+</header>
+
+<main class="stage" id="stage">
+
+  <!-- 0 — ABERTURA -->
+  <section class="station show" data-theme="abertura">
+    <div class="eyebrow">Devocional interativo · Salmos 22, 23 e 24</div>
+    <h1>Da Cruz<br>à Coroa</h1>
+    <p class="lead" style="margin-top:22px">Uma jornada cristocêntrica em três movimentos — o Cordeiro que sofre, o Pastor que conduz e o Rei que reina. Caminhem juntos, demorem-se em cada texto e deixem que a Palavra examine o coração.</p>
+    <div class="verse" style="margin-top:26px">“Porque o Cristo que morreu por nós é o mesmo que está conosco e reinará sobre nós.”</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" data-go="1">Começar a jornada</button>
+      <button class="btn ghost" data-go="5">Ir à Roda de Reflexão</button>
+    </div>
+    <div class="facilitator">
+      <b>Para quem conduz o grupo</b>
+      <p>Avancem movimento a movimento. Em cada salmo, leiam o texto em voz alta, observem a síntese e conversem. Na <em>Roda de Reflexão</em>, sorteiem perguntas e registrem juntos as respostas — ao final, vocês podem baixar ou imprimir tudo o que foi partilhado. Toquem a música ambiente para criar o clima de adoração.</p>
+    </div>
+    <p style="margin-top:28px; font-size:15px; color:var(--ivory-dim)">por <strong>Arisvaldo Marinho Cunha</strong></p>
+  </section>
+
+  <!-- 1 — O CORDEIRO -->
+  <section class="station" data-theme="cordeiro">
+    <div class="movt-num">Primeiro Movimento · A Cruz</div>
+    <div class="emblema" aria-hidden="true">
+      <svg width="46" height="64" viewBox="0 0 46 64"><rect x="20" y="2" width="6" height="60" rx="2" fill="var(--gold)"/><rect x="6" y="18" width="34" height="6" rx="2" fill="var(--gold)"/></svg>
+    </div>
+    <div class="eyebrow">Salmo 22 · O Messias sofredor</div>
+    <h2>O Cordeiro</h2>
+    <p>O Salmo 22 é a voz do Messias sofredor; suas palavras atravessam os séculos até ressoarem na própria boca de Cristo, pendurado no madeiro.</p>
+    <div class="verse">“Deus meu, Deus meu, por que me desamparaste?”<span class="ref">Salmo 22.1</span></div>
+    <div class="tags"><span class="tag">O salmo da cruz</span><span class="tag">O salmo do sacrifício</span><span class="tag">O salmo da redenção</span></div>
+    <p>Aqui contemplamos o Pastor que não foge do lobo, mas entrega a própria vida pelas ovelhas — uma vida oferecida, sacrificada, vicária. É o passado da nossa salvação: aquilo que Cristo já fez, de uma vez por todas.</p>
+    <div class="sintese">Síntese — Cristo morreu por nós.</div>
+  </section>
+
+  <!-- 2 — O PASTOR -->
+  <section class="station" data-theme="pastor">
+    <div class="movt-num">Segundo Movimento · O Cajado</div>
+    <div class="emblema" aria-hidden="true">
+      <svg width="40" height="64" viewBox="0 0 40 64"><path d="M20 62 V24 C20 12 14 8 20 8 C28 8 30 16 28 20" fill="none" stroke="var(--gold)" stroke-width="5" stroke-linecap="round"/></svg>
+    </div>
+    <div class="eyebrow">Salmo 23 · Aquele que caminha conosco</div>
+    <h2>O Pastor</h2>
+    <p>Somente depois de entregar a vida pelas ovelhas é que o Pastor passa a caminhar com elas. O salmo mais amado de todos começa com uma declaração de confiança para os vales mais escuros da existência.</p>
+    <div class="verse">“O Senhor é o meu pastor; nada me faltará.”<span class="ref">Salmo 23.1</span></div>
+    <div class="tags"><span class="tag">Ele guia</span><span class="tag">Ele protege</span><span class="tag">Ele restaura</span><span class="tag">Ele acompanha</span></div>
+    <p>Aquele que morreu agora conduz. É o presente da nossa salvação: o cuidado diário, o pastoreio que não cessa, a presença que nos alcança mesmo no vale da sombra.</p>
+    <div class="sintese">Síntese — Cristo está conosco.</div>
+  </section>
+
+  <!-- 3 — O REI -->
+  <section class="station" data-theme="rei">
+    <div class="movt-num">Terceiro Movimento · A Coroa</div>
+    <div class="emblema" aria-hidden="true">
+      <svg width="56" height="64" viewBox="0 0 56 64"><path d="M6 50 L6 24 L18 36 L28 18 L38 36 L50 24 L50 50 Z" fill="var(--gold)"/><circle cx="6" cy="22" r="3.4" fill="var(--gold)"/><circle cx="28" cy="14" r="3.4" fill="var(--gold)"/><circle cx="50" cy="22" r="3.4" fill="var(--gold)"/><rect x="6" y="52" width="44" height="5" rx="2" fill="var(--gold)"/></svg>
+    </div>
+    <div class="eyebrow">Salmo 24 · O Cordeiro exaltado</div>
+    <h2>O Rei da Glória</h2>
+    <p>Se o Salmo 22 nos levou ao calvário e o Salmo 23 ao vale, o Salmo 24 nos conduz às portas da cidade santa. O Cristo outrora desfigurado mostra-se agora exaltado, e uma pergunta ecoa até que a resposta o coroe de glória.</p>
+    <div class="verse">“Quem é este Rei da Glória? O Senhor dos Exércitos, ele é o Rei da Glória.”<span class="ref">Salmo 24.10</span></div>
+    <div class="tags"><span class="tag">O Cordeiro tornou-se Rei</span><span class="tag">A redenção alcançou sua consumação</span></div>
+    <p>Eis o futuro da nossa salvação: aquilo que Cristo fará, quando o Reino se consumar e a glória eterna for plenamente revelada.</p>
+    <div class="sintese">Síntese — Cristo reina sobre nós.</div>
+  </section>
+
+  <!-- 4 — AS TRÍADES -->
+  <section class="station" data-theme="triades">
+    <div class="eyebrow">Um só Salvador, vários ângulos</div>
+    <h2>As Três Tríades</h2>
+    <p>Os mesmos três salmos podem ser contemplados sob diferentes lentes. Escolham uma e vejam como o Cordeiro, o Pastor e o Rei se desdobram.</p>
+    <div class="lens-tabs" id="lensTabs"></div>
+    <div class="triade" id="triade"></div>
+  </section>
+
+  <!-- 5 — RODA DE REFLEXÃO -->
+  <section class="station" data-theme="roda">
+    <div class="eyebrow">Para conversar e registrar em grupo</div>
+    <h2>Roda de Reflexão</h2>
+    <p>Escolham uma esfera da vida, sorteiem uma pergunta e conversem. Registrem a reflexão do grupo — ao final, baixem ou imprimam tudo o que foi partilhado.</p>
+    <div class="spheres" id="spheres"></div>
+    <div class="drawbox">
+      <div class="q-sphere" id="qSphere">Esfera</div>
+      <div class="q-text"><span class="placeholder" id="qPlaceholder">Sorteiem a primeira pergunta para começar.</span><span id="qText"></span></div>
+      <button class="btn small" id="drawBtn">Sortear pergunta</button>
+      <div id="answerArea" style="display:none; margin-top:18px">
+        <textarea id="answer" placeholder="Registrem aqui a reflexão do grupo…"></textarea>
+        <div class="row">
+          <button class="btn small" id="saveBtn">Guardar reflexão</button>
+          <button class="btn ghost small" id="skipBtn">Sortear outra</button>
+        </div>
+      </div>
+    </div>
+    <div class="saved">
+      <h4>Reflexões guardadas (<span id="count">0</span>)</h4>
+      <div id="entries"><p class="empty-note">Ainda não há reflexões guardadas.</p></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost small" id="downloadBtn">Baixar reflexões</button>
+        <button class="btn ghost small" id="printBtn">Imprimir</button>
+        <button class="btn ghost small" id="clearBtn">Limpar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 — CAMINHOS PRÁTICOS -->
+  <section class="station" data-theme="caminhos">
+    <div class="eyebrow">Da contemplação à prática</div>
+    <h2>Caminhos para a Semana</h2>
+    <p>Que a jornada desça ao chão dos nossos dias. Toquem em cada caminho para o grupo assumi-lo.</p>
+    <div class="paths" id="paths"></div>
+    <div class="quote-soft">O Pastor que morreu por nós é o mesmo que caminha conosco e o mesmo Rei que voltará para nos receber.</div>
+  </section>
+
+  <!-- 7 — BÊNÇÃO -->
+  <section class="station center" data-theme="bencao">
+    <div class="eyebrow">Conclusão</div>
+    <h2>Toda a história do Evangelho<br>em três salmos</h2>
+    <p class="lead">No primeiro, o Pastor entrega a sua vida. No segundo, compartilha a sua vida. No terceiro, reina em glória.</p>
+    <div class="tricolon">
+      <div class="tl" style="color:#E8A0AE">A Vida Entregue<span>Salmo 22</span></div>
+      <div class="tl" style="color:#7FD3A6">A Vida Compartilhada<span>Salmo 23</span></div>
+      <div class="tl" style="color:var(--gold-bright)">A Vida Exaltada<span>Salmo 24</span></div>
+    </div>
+    <p class="lead" style="font-style:italic">Porque o Cristo que morreu por nós é o Cristo que está conosco hoje e será o Cristo que reinará para sempre sobre nós.</p>
+    <div class="amem">Amém.</div>
+    <div class="row" style="justify-content:center; margin-top:18px">
+      <button class="btn" data-go="5">Voltar à Roda de Reflexão</button>
+      <button class="btn ghost" id="restartBtn">Recomeçar a jornada</button>
+    </div>
+    <p style="margin-top:34px; font-size:13px; color:var(--ivory-dim)">Conteúdo: <strong>Arisvaldo Marinho Cunha</strong> · Série Orações Matinais · Música ambiente sacra gerada em tempo real.</p>
+  </section>
+
+</main>
+
+<!-- NAVEGAÇÃO -->
+<div class="nav">
+  <button class="btn ghost" id="prevBtn">◂ Voltar</button>
+  <div class="spacer"></div>
+  <button class="btn" id="nextBtn">Avançar ▸</button>
+</div>
+
+<!-- MÚSICA -->
+<div class="music">
+  <span class="music-lbl">Música ambiente sacra — toque para ouvir</span>
+  <button class="music-btn" id="musicBtn" aria-label="Tocar música ambiente" title="Música ambiente sacra">
+    <span class="eqbar"><i></i><i></i><i></i><i></i></span>
+  </button>
+</div>
+
+<script>
+/* ====================== DADOS ====================== */
+const STEP_NAMES = ["Abertura","O Cordeiro","O Pastor","O Rei","As Tríades","Roda de Reflexão","Caminhos","Bênção"];
+const THEMES = {
+  abertura:{ a:"#1a1325", b:"#0c0a12", accent:"#D9A93E" },
+  cordeiro:{ a:"#2A0E18", b:"#120509", accent:"#C76074" },
+  pastor:  { a:"#0F2A20", b:"#06120D", accent:"#5FB88A" },
+  rei:     { a:"#1C1A4A", b:"#0A0820", accent:"#E7C667" },
+  triades: { a:"#191634", b:"#0A0816", accent:"#D9A93E" },
+  roda:    { a:"#141833", b:"#080a18", accent:"#C9A24B" },
+  caminhos:{ a:"#10241F", b:"#06120E", accent:"#57B089" },
+  bencao:  { a:"#2A2350", b:"#15112E", accent:"#F0CE72" }
+};
+
+const LENSES = {
+  "Cristológica":[
+    ["O Cordeiro","O Messias sofredor entrega-se na cruz."],
+    ["O Pastor","Aquele que morreu agora caminha conosco."],
+    ["O Rei da Glória","O Cordeiro exaltado reina em glória."]],
+  "A Vida":[
+    ["A Vida Redentiva","O Pastor entrega sua vida pelas ovelhas."],
+    ["A Vida Pastoral","O Pastor compartilha sua vida com as ovelhas."],
+    ["A Vida Gloriosa","O Pastor-Rei reina sobre todas as coisas."]],
+  "O Tempo":[
+    ["O Passado","O que Cristo fez: a cruz e a redenção consumada."],
+    ["O Presente","O que Cristo faz: o cuidado diário e o pastoreio contínuo."],
+    ["O Futuro","O que Cristo fará: o Reino consumado e a glória eterna."]],
+  "A Síntese":[
+    ["Cristo por nós","Na cruz, onde tomou o nosso lugar."],
+    ["Cristo conosco","No vale, onde nenhuma sombra nos separa do seu cajado."],
+    ["Cristo sobre nós","No trono, onde toda a criação dobrará os joelhos."]]
+};
+
+const QUESTIONS = {
+  "Geral":[
+    "Qual aspecto desta tríade mais falou ao seu coração?",
+    "Em qual destes três salmos você se identifica mais hoje?",
+    "Como a compreensão de Cristo como Cordeiro, Pastor e Rei fortalece a sua fé?"],
+  "Família":[
+    "Como a entrega sacrificial de Cristo influencia a forma como você ama a sua família?",
+    "De que maneira você pode refletir o cuidado pastoral de Cristo dentro de casa?",
+    "Como a esperança da glória futura ajuda a sua família a enfrentar momentos difíceis?",
+    "O que a sua família pode fazer para viver mais conscientemente à luz da eternidade?"],
+  "Igreja":[
+    "Como podemos refletir a vida redentiva de Cristo servindo uns aos outros?",
+    "Como podemos exercer um cuidado pastoral mútuo dentro da igreja?",
+    "De que maneira a esperança do Reino fortalece a comunhão da igreja?",
+    "Como podemos apontar uns aos outros para Cristo como Rei da Glória?"],
+  "Trabalho":[
+    "Como o sacrifício de Cristo influencia a sua ética profissional?",
+    "De que maneira o cuidado de Cristo molda a sua relação com colegas de trabalho?",
+    "Como a esperança do Reino transforma a sua visão sobre sucesso e realização?",
+    "O seu trabalho glorifica o Rei que um dia voltará?"],
+  "Devocional":[
+    "Como você responde diariamente ao amor sacrificial de Cristo?",
+    "Em quais momentos você mais percebe a presença do Pastor?",
+    "Como a esperança da glória futura fortalece a sua perseverança espiritual?",
+    "Existe alguma área da sua vida que ainda não está totalmente submetida ao Rei da Glória?"]
+};
+
+const PATHS = [
+  ["I","Diário da Redenção","Durante uma semana, anote a cada dia algo pelo qual você é grato à cruz de Cristo."],
+  ["II","Exercício da Presença","Ao despertar, repita: “Tu estás comigo”. Lembre-se da presença do Pastor ao longo do dia."],
+  ["III","Exercício da Esperança","Uma vez por semana, leia o Salmo 24 e medite sobre o retorno de Cristo."],
+  ["IV","Compartilhamento Comunitário","Cada um escreve um poema, uma oração, uma reflexão ou um testemunho — e partilha com o grupo."],
+  ["V","Celebração da Esperança","Promovam um encontro para celebrar a esperança futura, com cânticos, leituras e oração."]
+];
+
+/* ====================== NAVEGAÇÃO ====================== */
+const stations = [...document.querySelectorAll('.station')];
+const stepsWrap = document.getElementById('steps');
+let current = 0;
+
+STEP_NAMES.forEach((name,i)=>{
+  const b=document.createElement('button');
+  b.className='step'; b.setAttribute('aria-label',name);
+  b.innerHTML=`<span class="tip">${name}</span>`;
+  b.addEventListener('click',()=>go(i));
+  stepsWrap.appendChild(b);
+});
+
+function applyTheme(key){
+  const t=THEMES[key]||THEMES.abertura;
+  const r=document.documentElement.style;
+  r.setProperty('--bg-a',t.a); r.setProperty('--bg-b',t.b);
+  r.setProperty('--accent',t.accent);
+  r.setProperty('--glow',hexA(t.accent,.22));
+  r.setProperty('--accent-soft',hexA(t.accent,.16));
+}
+function hexA(hex,a){
+  const h=hex.replace('#',''); const n=parseInt(h,16);
+  const r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function go(i){
+  i=Math.max(0,Math.min(stations.length-1,i));
+  stations[current].classList.remove('show');
+  current=i;
+  const st=stations[current];
+  st.classList.add('show');
+  applyTheme(st.dataset.theme);
+  [...stepsWrap.children].forEach((s,idx)=>{
+    s.classList.toggle('active',idx===current);
+    s.classList.toggle('done',idx<current);
+  });
+  document.getElementById('prevBtn').style.visibility = current===0?'hidden':'visible';
+  const next=document.getElementById('nextBtn');
+  next.style.visibility = current===stations.length-1?'hidden':'visible';
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(audio.on) audio.setMood(st.dataset.theme);
+}
+document.getElementById('prevBtn').addEventListener('click',()=>go(current-1));
+document.getElementById('nextBtn').addEventListener('click',()=>go(current+1));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.go)));
+document.getElementById('restartBtn').addEventListener('click',()=>go(0));
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='TEXTAREA') return;
+  if(e.key==='ArrowRight') go(current+1);
+  if(e.key==='ArrowLeft') go(current-1);
+});
+
+/* ====================== TRÍADES ====================== */
+const lensTabs=document.getElementById('lensTabs');
+const triade=document.getElementById('triade');
+let activeLens=Object.keys(LENSES)[0];
+Object.keys(LENSES).forEach(name=>{
+  const b=document.createElement('button');
+  b.className='lens'+(name===activeLens?' on':''); b.textContent=name;
+  b.addEventListener('click',()=>{ activeLens=name; renderLens(); });
+  lensTabs.appendChild(b);
+});
+function renderLens(){
+  [...lensTabs.children].forEach(c=>c.classList.toggle('on',c.textContent===activeLens));
+  const rows=LENSES[activeLens];
+  const cls=['s22','s23','s24']; const sx=['Salmo 22','Salmo 23','Salmo 24'];
+  triade.innerHTML=rows.map((r,i)=>`
+    <div class="col ${cls[i]}" style="animation-delay:${i*0.08}s">
+      <div class="sx">${sx[i]}</div>
+      <div class="ct">${r[0]}</div>
+      <p>${r[1]}</p>
+    </div>`).join('');
+}
+renderLens();
+
+/* ====================== RODA DE REFLEXÃO ====================== */
+const spheresWrap=document.getElementById('spheres');
+const qSphereEl=document.getElementById('qSphere');
+const qTextEl=document.getElementById('qText');
+const qPlaceholder=document.getElementById('qPlaceholder');
+const answerArea=document.getElementById('answerArea');
+const answerEl=document.getElementById('answer');
+const entriesEl=document.getElementById('entries');
+const countEl=document.getElementById('count');
+let activeSphere=null, queues={}, currentQ=null, reflections=[];
+
+Object.keys(QUESTIONS).forEach(s=>{
+  const b=document.createElement('button');
+  b.className='lens'; b.textContent=s;
+  b.addEventListener('click',()=>{ activeSphere=s; [...spheresWrap.children].forEach(c=>c.classList.toggle('on',c.textContent===s)); draw(); });
+  spheresWrap.appendChild(b);
+});
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function draw(){
+  if(!activeSphere){ activeSphere=Object.keys(QUESTIONS)[0]; [...spheresWrap.children][0].classList.add('on'); }
+  if(!queues[activeSphere]||queues[activeSphere].length===0) queues[activeSphere]=shuffle(QUESTIONS[activeSphere]);
+  currentQ=queues[activeSphere].pop();
+  qPlaceholder.style.display='none';
+  qSphereEl.textContent=activeSphere;
+  qTextEl.textContent='“'+currentQ+'”';
+  answerArea.style.display='block';
+  answerEl.value=''; answerEl.focus();
+}
+document.getElementById('drawBtn').addEventListener('click',draw);
+document.getElementById('skipBtn').addEventListener('click',draw);
+document.getElementById('saveBtn').addEventListener('click',()=>{
+  const txt=answerEl.value.trim();
+  if(!currentQ) return;
+  reflections.push({ sphere:activeSphere, q:currentQ, a:txt||'(sem registro escrito — partilhado em voz)' });
+  renderEntries(); draw();
+});
+function renderEntries(){
+  countEl.textContent=reflections.length;
+  if(reflections.length===0){ entriesEl.innerHTML='<p class="empty-note">Ainda não há reflexões guardadas.</p>'; return; }
+  entriesEl.innerHTML=reflections.map(r=>`
+    <div class="entry">
+      <div class="e-meta">${r.sphere}</div>
+      <div class="e-q">“${esc(r.q)}”</div>
+      <div class="e-a">${esc(r.a)}</div>
+    </div>`).join('');
+}
+function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  if(reflections.length && confirm('Limpar todas as reflexões guardadas?')){ reflections=[]; renderEntries(); }
+});
+document.getElementById('downloadBtn').addEventListener('click',()=>{
+  let out='DA CRUZ À COROA — Reflexões do grupo\nSalmos 22, 23 e 24 · Série Orações Matinais\n'+new Date().toLocaleString('pt-BR')+'\n\n';
+  if(reflections.length===0){ out+='(Nenhuma reflexão registrada.)\n'; }
+  reflections.forEach((r,i)=>{ out+=`${i+1}. [${r.sphere}] ${r.q}\n   → ${r.a}\n\n`; });
+  out+='\n“Porque o Cristo que morreu por nós é o Cristo que está conosco hoje e será o Cristo que reinará para sempre sobre nós.” Amém.';
+  const blob=new Blob([out],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='reflexoes-da-cruz-a-coroa.txt'; a.click(); URL.revokeObjectURL(a.href);
+});
+document.getElementById('printBtn').addEventListener('click',()=>window.print());
+
+/* ====================== CAMINHOS ====================== */
+const pathsWrap=document.getElementById('paths');
+pathsWrap.innerHTML=PATHS.map((p,i)=>`
+  <div class="path" data-i="${i}" tabindex="0" role="button" aria-pressed="false">
+    <div class="pn">CAMINHO ${p[0]}</div>
+    <div class="pt">${p[1]}</div>
+    <p>${p[2]}</p>
+    <div class="check">Assumir este caminho</div>
+  </div>`).join('');
+pathsWrap.querySelectorAll('.path').forEach(el=>{
+  const toggle=()=>{ const on=el.classList.toggle('on'); el.setAttribute('aria-pressed',on);
+    el.querySelector('.check').textContent= on?'Caminho assumido':'Assumir este caminho'; };
+  el.addEventListener('click',toggle);
+  el.addEventListener('keydown',e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(); } });
+});
+
+/* ====================== ESTRELAS ====================== */
+(function(){
+  const c=document.getElementById('stars'), x=c.getContext('2d');
+  let stars=[];
+  function size(){ c.width=innerWidth; c.height=innerHeight;
+    stars=Array.from({length:Math.min(90,Math.floor(innerWidth/16))},()=>({
+      x:Math.random()*c.width, y:Math.random()*c.height, r:Math.random()*1.3+.2,
+      p:Math.random()*Math.PI*2, s:Math.random()*.02+.005 })); }
+  size(); addEventListener('resize',size);
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function frame(){
+    x.clearRect(0,0,c.width,c.height);
+    for(const st of stars){ st.p+=st.s; const tw=(Math.sin(st.p)+1)/2;
+      x.globalAlpha=.15+tw*.5; x.fillStyle='#F0CE72';
+      x.beginPath(); x.arc(st.x,st.y,st.r,0,7); x.fill(); }
+    if(!reduce) requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ====================== MÚSICA AMBIENTE (Web Audio, gerada ao vivo) ====================== */
+const audio={
+  ctx:null, on:false, master:null, verb:null, timer:null, bellTimer:null, mood:'abertura', step:0,
+  palettes:{
+    abertura:[[146.83,174.61,220.00],[130.81,164.81,196.00],[110.00,164.81,220.00],[123.47,146.83,196.00]],
+    cordeiro:[[146.83,174.61,220.00],[116.54,146.83,174.61],[98.00,116.54,146.83],[110.00,138.59,164.81]], // sombrio (ré menor)
+    pastor:[[98.00,123.47,146.83],[82.41,98.00,123.47],[130.81,164.81,196.00],[146.83,185.00,220.00]],     // pastoral (sol maior)
+    rei:[[146.83,185.00,220.00],[196.00,246.94,293.66],[220.00,277.18,329.63],[146.83,220.00,293.66]],     // majestoso (ré maior)
+    triades:[[146.83,185.00,220.00],[164.81,196.00,246.94],[130.81,164.81,196.00],[146.83,174.61,220.00]],
+    roda:[[130.81,164.81,196.00],[110.00,146.83,174.61],[123.47,146.83,196.00],[98.00,146.83,185.00]],
+    caminhos:[[98.00,123.47,146.83],[130.81,164.81,196.00],[110.00,138.59,164.81],[146.83,185.00,220.00]],
+    bencao:[[146.83,185.00,220.00],[196.00,246.94,293.66],[164.81,220.00,261.63],[146.83,220.00,293.66]]
+  },
+  init(){
+    const AC=window.AudioContext||window.webkitAudioContext; this.ctx=new AC();
+    this.master=this.ctx.createGain(); this.master.gain.value=0.0;
+    this.verb=this.ctx.createConvolver(); this.verb.buffer=this.impulse(2.8,3.2);
+    const wet=this.ctx.createGain(); wet.gain.value=0.32;
+    const dry=this.ctx.createGain(); dry.gain.value=0.92;
+    this.bus=this.ctx.createGain();
+    this.bus.connect(dry).connect(this.master);
+    this.bus.connect(this.verb).connect(wet).connect(this.master);
+    this.lim=this.ctx.createDynamicsCompressor();
+    this.lim.threshold.value=-4; this.lim.ratio.value=12; this.lim.attack.value=0.004; this.lim.release.value=0.25;
+    this.master.connect(this.lim).connect(this.ctx.destination);
+  },
+  impulse(dur,decay){
+    const rate=this.ctx.sampleRate, len=rate*dur, buf=this.ctx.createBuffer(2,len,rate);
+    for(let ch=0;ch<2;ch++){ const d=buf.getChannelData(ch);
+      for(let i=0;i<len;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay); } }
+    return buf;
+  },
+  chord(freqs){
+    const t=this.ctx.currentTime, dur=8;
+    const lvls=[0.32,0.22,0.16,0.13];
+    freqs.forEach((f,i)=>{
+      const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+      o.type=i===0?'triangle':'sine'; o.frequency.value=f;
+      o.detune.value=(i-1)*4;
+      const peak=lvls[i]||0.1;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(peak,t+1.3);
+      g.gain.setValueAtTime(peak,t+dur-2.6);
+      g.gain.linearRampToValueAtTime(0.0001,t+dur);
+      o.connect(g).connect(this.bus); o.start(t); o.stop(t+dur+0.1);
+    });
+  },
+  bell(){
+    const pal=this.palettes[this.mood]; const ch=pal[(this.step)%pal.length];
+    const f=ch[ch.length-1]*2; const t=this.ctx.currentTime;
+    const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type='sine'; o.frequency.value=f;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.13,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+4.5);
+    o.connect(g).connect(this.bus); o.start(t); o.stop(t+4.6);
+  },
+  loop(){
+    const pal=this.palettes[this.mood];
+    this.chord(pal[this.step%pal.length]); this.step++;
+  },
+  setMood(m){ if(this.palettes[m]) this.mood=m; },
+  start(){
+    if(!this.ctx) this.init();
+    if(this.ctx.state==='suspended') this.ctx.resume();
+    this.on=true; this.setMood(stations[current].dataset.theme);
+    this.master.gain.cancelScheduledValues(this.ctx.currentTime);
+    this.master.gain.setValueAtTime(this.master.gain.value,this.ctx.currentTime);
+    this.master.gain.linearRampToValueAtTime(0.62,this.ctx.currentTime+1.2);
+    this.loop();
+    this.timer=setInterval(()=>this.loop(),6000);
+    this.bellTimer=setInterval(()=>this.bell(),9000);
+    setTimeout(()=>this.bell(),3000);
+  },
+  stop(){
+    this.on=false;
+    if(this.master){ this.master.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.master.gain.linearRampToValueAtTime(0,this.ctx.currentTime+1.4); }
+    clearInterval(this.timer); clearInterval(this.bellTimer);
+  }
+};
+const musicBtn=document.getElementById('musicBtn');
+musicBtn.addEventListener('click',()=>{
+  try{
+    if(audio.on){ audio.stop(); musicBtn.classList.remove('playing'); musicBtn.setAttribute('aria-label','Tocar música ambiente'); }
+    else{ audio.start(); musicBtn.classList.add('playing'); musicBtn.setAttribute('aria-label','Pausar música ambiente'); }
+  }catch(e){ console.warn('Áudio indisponível:',e); }
+});
+
+/* init */
+go(0);
+</script>
+</body>
+</html>
