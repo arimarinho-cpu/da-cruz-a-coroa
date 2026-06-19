@@ -270,6 +270,39 @@ textarea:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var
   backdrop-filter:blur(6px); max-width:0; overflow:hidden; white-space:nowrap; opacity:0; transition:all .35s;
 }
 .music:hover .music-lbl{ max-width:240px; opacity:1; }
+
+/* painel de volume */
+.vol-panel{
+  display:flex; align-items:center; gap:9px;
+  background:rgba(12,10,18,.72); backdrop-filter:blur(6px);
+  border:1px solid rgba(217,169,62,.4); border-radius:24px;
+  padding:8px 14px; transition:all .35s;
+}
+.vol-ico{ color:var(--gold-bright); font-size:15px; line-height:1; }
+.vol-pct{
+  font-family:var(--display); font-size:11px; letter-spacing:.05em;
+  color:var(--ivory-dim); min-width:34px; text-align:right;
+}
+input[type="range"]#vol{
+  -webkit-appearance:none; appearance:none; width:110px; height:4px;
+  background:linear-gradient(to right, var(--gold) 0%, var(--gold) 45%, rgba(243,233,214,.22) 45%);
+  border-radius:4px; outline:none; cursor:pointer; margin:0;
+}
+input[type="range"]#vol::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none; width:15px; height:15px; border-radius:50%;
+  background:var(--gold-bright); border:2px solid #2a2008; cursor:pointer;
+  box-shadow:0 1px 5px rgba(0,0,0,.5);
+}
+input[type="range"]#vol::-moz-range-thumb{
+  width:15px; height:15px; border-radius:50%; background:var(--gold-bright);
+  border:2px solid #2a2008; cursor:pointer;
+}
+input[type="range"]#vol:focus-visible{ box-shadow:0 0 0 3px var(--accent-soft); }
+@media (max-width:560px){
+  .vol-panel{ padding:7px 11px; gap:7px; }
+  input[type="range"]#vol{ width:78px; }
+  .music-lbl{ display:none; }
+}
 .eqbar{ display:inline-flex; gap:2px; align-items:flex-end; height:16px; }
 .eqbar i{ width:3px; background:currentColor; height:5px; border-radius:2px; }
 .music-btn.playing .eqbar i{ animation:eq .9s ease-in-out infinite; }
@@ -436,7 +469,7 @@ a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(
       <button class="btn" data-go="5">Voltar à Roda de Reflexão</button>
       <button class="btn ghost" id="restartBtn">Recomeçar a jornada</button>
     </div>
-    <p style="margin-top:34px; font-size:13px; color:var(--ivory-dim)">Conteúdo: <strong>Arisvaldo Marinho Cunha</strong> · Série Orações Matinais · Música ambiente sacra gerada em tempo real.</p>
+    <p style="margin-top:34px; font-size:13px; color:var(--ivory-dim)">Conteúdo e música: <strong>Arisvaldo Marinho Cunha</strong> · Série Orações Matinais · Faixa “Onde o Coração Descansa”.</p>
   </section>
 
 </main>
@@ -450,8 +483,13 @@ a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(
 
 <!-- MÚSICA -->
 <div class="music">
-  <span class="music-lbl">Música ambiente sacra — toque para ouvir</span>
-  <button class="music-btn" id="musicBtn" aria-label="Tocar música ambiente" title="Música ambiente sacra">
+  <div class="vol-panel">
+    <span class="vol-ico" aria-hidden="true">♪</span>
+    <input type="range" id="vol" min="0" max="100" value="45" step="1" aria-label="Volume da música" title="Volume da música">
+    <span class="vol-pct" id="volPct">45%</span>
+  </div>
+  <span class="music-lbl">Onde o Coração Descansa — toque para ouvir</span>
+  <button class="music-btn" id="musicBtn" aria-label="Tocar música" title="Onde o Coração Descansa">
     <span class="eqbar"><i></i><i></i><i></i><i></i></span>
   </button>
 </div>
@@ -698,93 +736,64 @@ pathsWrap.querySelectorAll('.path').forEach(el=>{
   frame();
 })();
 
-/* ====================== MÚSICA AMBIENTE (Web Audio, gerada ao vivo) ====================== */
-const audio={
-  ctx:null, on:false, master:null, verb:null, timer:null, bellTimer:null, mood:'abertura', step:0,
-  palettes:{
-    abertura:[[146.83,174.61,220.00],[130.81,164.81,196.00],[110.00,164.81,220.00],[123.47,146.83,196.00]],
-    cordeiro:[[146.83,174.61,220.00],[116.54,146.83,174.61],[98.00,116.54,146.83],[110.00,138.59,164.81]], // sombrio (ré menor)
-    pastor:[[98.00,123.47,146.83],[82.41,98.00,123.47],[130.81,164.81,196.00],[146.83,185.00,220.00]],     // pastoral (sol maior)
-    rei:[[146.83,185.00,220.00],[196.00,246.94,293.66],[220.00,277.18,329.63],[146.83,220.00,293.66]],     // majestoso (ré maior)
-    triades:[[146.83,185.00,220.00],[164.81,196.00,246.94],[130.81,164.81,196.00],[146.83,174.61,220.00]],
-    roda:[[130.81,164.81,196.00],[110.00,146.83,174.61],[123.47,146.83,196.00],[98.00,146.83,185.00]],
-    caminhos:[[98.00,123.47,146.83],[130.81,164.81,196.00],[110.00,138.59,164.81],[146.83,185.00,220.00]],
-    bencao:[[146.83,185.00,220.00],[196.00,246.94,293.66],[164.81,220.00,261.63],[146.83,220.00,293.66]]
-  },
-  init(){
-    const AC=window.AudioContext||window.webkitAudioContext; this.ctx=new AC();
-    this.master=this.ctx.createGain(); this.master.gain.value=0.0;
-    this.verb=this.ctx.createConvolver(); this.verb.buffer=this.impulse(2.8,3.2);
-    const wet=this.ctx.createGain(); wet.gain.value=0.32;
-    const dry=this.ctx.createGain(); dry.gain.value=0.92;
-    this.bus=this.ctx.createGain();
-    this.bus.connect(dry).connect(this.master);
-    this.bus.connect(this.verb).connect(wet).connect(this.master);
-    this.lim=this.ctx.createDynamicsCompressor();
-    this.lim.threshold.value=-4; this.lim.ratio.value=12; this.lim.attack.value=0.004; this.lim.release.value=0.25;
-    this.master.connect(this.lim).connect(this.ctx.destination);
-  },
-  impulse(dur,decay){
-    const rate=this.ctx.sampleRate, len=rate*dur, buf=this.ctx.createBuffer(2,len,rate);
-    for(let ch=0;ch<2;ch++){ const d=buf.getChannelData(ch);
-      for(let i=0;i<len;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay); } }
-    return buf;
-  },
-  chord(freqs){
-    const t=this.ctx.currentTime, dur=8;
-    const lvls=[0.32,0.22,0.16,0.13];
-    freqs.forEach((f,i)=>{
-      const o=this.ctx.createOscillator(), g=this.ctx.createGain();
-      o.type=i===0?'triangle':'sine'; o.frequency.value=f;
-      o.detune.value=(i-1)*4;
-      const peak=lvls[i]||0.1;
-      g.gain.setValueAtTime(0.0001,t);
-      g.gain.linearRampToValueAtTime(peak,t+1.3);
-      g.gain.setValueAtTime(peak,t+dur-2.6);
-      g.gain.linearRampToValueAtTime(0.0001,t+dur);
-      o.connect(g).connect(this.bus); o.start(t); o.stop(t+dur+0.1);
-    });
-  },
-  bell(){
-    const pal=this.palettes[this.mood]; const ch=pal[(this.step)%pal.length];
-    const f=ch[ch.length-1]*2; const t=this.ctx.currentTime;
-    const o=this.ctx.createOscillator(), g=this.ctx.createGain();
-    o.type='sine'; o.frequency.value=f;
-    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.13,t+0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001,t+4.5);
-    o.connect(g).connect(this.bus); o.start(t); o.stop(t+4.6);
-  },
-  loop(){
-    const pal=this.palettes[this.mood];
-    this.chord(pal[this.step%pal.length]); this.step++;
-  },
-  setMood(m){ if(this.palettes[m]) this.mood=m; },
+/* ====================== MÚSICA AMBIENTE (faixa MP3) ====================== */
+/* Coloque o arquivo "onde-o-coracao-descansa.mp3" na mesma pasta do index.html */
+let trackVolume = 0.45;             // volume inicial da faixa (0 a 1) — ajustável pelo controle deslizante
+const bgm = new Audio('onde-o-coracao-descansa.mp3');
+bgm.loop = true; bgm.preload = 'auto'; bgm.volume = 0;
+
+const audio = {
+  on:false, fade:null,
+  setMood(){},  /* mantido por compatibilidade com a navegação */
   start(){
-    if(!this.ctx) this.init();
-    if(this.ctx.state==='suspended') this.ctx.resume();
-    this.on=true; this.setMood(stations[current].dataset.theme);
-    this.master.gain.cancelScheduledValues(this.ctx.currentTime);
-    this.master.gain.setValueAtTime(this.master.gain.value,this.ctx.currentTime);
-    this.master.gain.linearRampToValueAtTime(0.62,this.ctx.currentTime+1.2);
-    this.loop();
-    this.timer=setInterval(()=>this.loop(),6000);
-    this.bellTimer=setInterval(()=>this.bell(),9000);
-    setTimeout(()=>this.bell(),3000);
+    this.on = true; bgm.volume = 0;
+    const pr = bgm.play();
+    if(pr && pr.then){
+      pr.then(()=>this._fadeTo(trackVolume,1600))
+        .catch(e=>{ console.warn('Não foi possível tocar a faixa:',e); this.on=false;
+          const b=document.getElementById('musicBtn'); if(b){ b.classList.remove('playing'); b.setAttribute('aria-label','Tocar música'); } });
+    } else { this._fadeTo(trackVolume,1600); }
   },
   stop(){
-    this.on=false;
-    if(this.master){ this.master.gain.cancelScheduledValues(this.ctx.currentTime);
-      this.master.gain.linearRampToValueAtTime(0,this.ctx.currentTime+1.4); }
-    clearInterval(this.timer); clearInterval(this.bellTimer);
+    this.on = false;
+    this._fadeTo(0,900,()=>bgm.pause());
+  },
+  _fadeTo(target,dur,done){
+    clearInterval(this.fade);
+    const start = bgm.volume, t0 = performance.now();
+    this.fade = setInterval(()=>{
+      const k = Math.min(1,(performance.now()-t0)/dur);
+      bgm.volume = Math.max(0,Math.min(1, start + (target-start)*k));
+      if(k>=1){ clearInterval(this.fade); if(done) done(); }
+    },40);
   }
 };
 const musicBtn=document.getElementById('musicBtn');
 musicBtn.addEventListener('click',()=>{
   try{
-    if(audio.on){ audio.stop(); musicBtn.classList.remove('playing'); musicBtn.setAttribute('aria-label','Tocar música ambiente'); }
-    else{ audio.start(); musicBtn.classList.add('playing'); musicBtn.setAttribute('aria-label','Pausar música ambiente'); }
+    if(audio.on){ audio.stop(); musicBtn.classList.remove('playing'); musicBtn.setAttribute('aria-label','Tocar música'); }
+    else{ audio.start(); musicBtn.classList.add('playing'); musicBtn.setAttribute('aria-label','Pausar música'); }
   }catch(e){ console.warn('Áudio indisponível:',e); }
 });
+
+/* controle deslizante de volume */
+const volSlider=document.getElementById('vol');
+const volPct=document.getElementById('volPct');
+function paintSlider(v){
+  if(volSlider) volSlider.style.background=
+    `linear-gradient(to right, var(--gold) 0%, var(--gold) ${v}%, rgba(243,233,214,.22) ${v}%)`;
+}
+if(volSlider){
+  volSlider.value=Math.round(trackVolume*100);
+  if(volPct) volPct.textContent=volSlider.value+'%';
+  paintSlider(volSlider.value);
+  volSlider.addEventListener('input',()=>{
+    trackVolume=volSlider.value/100;
+    if(volPct) volPct.textContent=volSlider.value+'%';
+    paintSlider(volSlider.value);
+    if(audio.on){ clearInterval(audio.fade); bgm.volume=trackVolume; }  /* aplica na hora, sem fade */
+  });
+}
 
 /* init */
 go(0);
