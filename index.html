@@ -331,15 +331,23 @@ a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(
 .rtool.on{ background:var(--accent-soft); border-color:var(--gold); color:var(--gold-bright); }
 .rtool:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
 
-/* ---- maior área de toque nos pontos da trilha ---- */
-.step{ padding:9px; margin:-7px -2px; box-sizing:content-box; }
+/* ---- trilha de pontos: visível no desktop, oculta no celular ---- */
+@media (max-width:760px){
+  .steps{ display:none; }                 /* no celular, navega-se por Avançar/Voltar, "Etapa X de Y" e deslizar */
+  .rail{ justify-content:space-between; }
+  .rail-tools{ margin-left:0; }
+}
 
 /* ---- indicador de etapa ---- */
 .nav-progress{
   font-family:var(--display); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
   color:var(--ivory-dim); text-align:center; pointer-events:none; padding:0 8px;
 }
-@media (max-width:560px){ .nav-progress{ display:none; } }
+@media (max-width:560px){
+  .steps{ display:none; }
+  .nav-progress{ display:block; }
+  .rail-tools{ margin-left:8px; }
+}
 
 /* ---- roda: cabeçalho, autoria, dicas ---- */
 .q-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
@@ -675,7 +683,7 @@ function go(i){
   next.style.visibility = current===stations.length-1?'hidden':'visible';
   window.scrollTo({top:0,behavior:'smooth'});
   const np=document.getElementById('navProgress');
-  if(np) np.textContent='Etapa '+(current+1)+' de '+stations.length+' · '+STEP_NAMES[current];
+  if(np) np.textContent='Etapa '+(current+1)+' de '+stations.length;
   store.d.station=current; store.save();
   if(audio.on) audio.setMood(st.dataset.theme);
 }
