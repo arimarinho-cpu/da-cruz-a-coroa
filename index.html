@@ -11,7 +11,7 @@
 <style>
 :root{
   --ivory:#F3E9D6;
-  --ivory-dim:#C9BBA0;
+  --ivory-dim:#D2C5A8;
   --gold:#D9A93E;
   --gold-bright:#F0CE72;
   --ink:#0C0A12;
@@ -320,6 +320,52 @@ input[type="range"]#vol:focus-visible{ box-shadow:0 0 0 3px var(--accent-soft); 
 
 a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(217,169,62,.4); }
 
+/* ---- ferramentas da trilha: fonte e apresentação ---- */
+.rail-tools{ display:flex; align-items:center; gap:6px; margin-left:14px; }
+.rtool{
+  appearance:none; cursor:pointer; min-width:30px; height:30px; padding:0 8px;
+  border:1px solid rgba(243,233,214,.3); border-radius:16px; background:rgba(12,10,18,.5);
+  color:var(--ivory); font-family:var(--display); font-size:12px; line-height:1; transition:all .25s;
+}
+.rtool:hover{ border-color:var(--gold); color:var(--gold-bright); }
+.rtool.on{ background:var(--accent-soft); border-color:var(--gold); color:var(--gold-bright); }
+.rtool:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+/* ---- maior área de toque nos pontos da trilha ---- */
+.step{ padding:9px; margin:-7px -2px; box-sizing:content-box; }
+
+/* ---- indicador de etapa ---- */
+.nav-progress{
+  font-family:var(--display); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ivory-dim); text-align:center; pointer-events:none; padding:0 8px;
+}
+@media (max-width:560px){ .nav-progress{ display:none; } }
+
+/* ---- roda: cabeçalho, autoria, dicas ---- */
+.q-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.q-remaining{ font-family:var(--display); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ivory-dim); }
+.author-input{
+  width:100%; margin-bottom:10px; font-family:var(--body); font-size:16px; color:var(--ivory);
+  background:rgba(12,10,18,.5); border:1px solid rgba(243,233,214,.2); border-radius:8px; padding:11px 14px;
+}
+.author-input:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--accent-soft); }
+.hint{ font-size:13px; color:var(--ivory-dim); font-style:italic; margin:12px 0 0; }
+.saved-note{ font-size:12.5px; color:var(--ivory-dim); font-style:italic; margin:2px 0 12px; }
+
+/* ---- status da música ---- */
+.music-status{
+  font-family:var(--display); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--gold); background:rgba(12,10,18,.72); padding:6px 10px; border-radius:14px;
+  backdrop-filter:blur(6px); white-space:nowrap; align-self:center;
+}
+.music-status:empty{ display:none; }
+
+/* ---- modo apresentação (telão) ---- */
+body.present{ --ivory:#FFF8EA; --ivory-dim:#E7DCC0; }
+body.present .facilitator, body.present .step .tip{ display:none; }
+body.present p, body.present .lead{ color:#F3EAD4; }
+body.present .verse, body.present .sintese{ text-shadow:0 1px 14px rgba(0,0,0,.55); }
+
 @media (prefers-reduced-motion: reduce){
   *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
 }
@@ -340,6 +386,11 @@ a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(
 <header class="rail">
   <div class="brand">Da Cruz à Coroa<small>Série Orações Matinais</small></div>
   <nav class="steps" id="steps" aria-label="Etapas da jornada"></nav>
+  <div class="rail-tools">
+    <button class="rtool" id="fontDown" aria-label="Diminuir o tamanho do texto" title="Diminuir o texto">A−</button>
+    <button class="rtool" id="fontUp" aria-label="Aumentar o tamanho do texto" title="Aumentar o texto">A+</button>
+    <button class="rtool" id="presentBtn" aria-pressed="false" aria-label="Modo apresentação" title="Modo apresentação (telão)">▣</button>
+  </div>
 </header>
 
 <main class="stage" id="stage">
@@ -356,7 +407,7 @@ a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(
     </div>
     <div class="facilitator">
       <b>Para quem conduz o grupo</b>
-      <p>Avancem movimento a movimento. Em cada salmo, leiam o texto em voz alta, observem a síntese e conversem. Na <em>Roda de Reflexão</em>, sorteiem perguntas e registrem juntos as respostas — ao final, vocês podem baixar ou imprimir tudo o que foi partilhado. Toquem a música ambiente para criar o clima de adoração.</p>
+      <p>Avancem movimento a movimento (ou deslizem para os lados no celular). Em cada salmo, leiam o texto em voz alta, observem a síntese e conversem. Na <em>Roda de Reflexão</em>, sorteiem perguntas e registrem juntos as respostas — várias pessoas podem responder à mesma pergunta. Tudo fica salvo neste dispositivo, e ao final vocês podem baixar ou imprimir o que foi partilhado. Para projetar num telão, usem o botão ▣ (apresentação) e os botões A−/A+ no alto. Toquem a música para criar o clima de adoração.</p>
     </div>
     <p style="margin-top:28px; font-size:15px; color:var(--ivory-dim)">por <strong>Arisvaldo Marinho Cunha</strong></p>
   </section>
@@ -422,19 +473,25 @@ a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(
     <p>Escolham uma esfera da vida, sorteiem uma pergunta e conversem. Registrem a reflexão do grupo — ao final, baixem ou imprimam tudo o que foi partilhado.</p>
     <div class="spheres" id="spheres"></div>
     <div class="drawbox">
-      <div class="q-sphere" id="qSphere">Esfera</div>
-      <div class="q-text"><span class="placeholder" id="qPlaceholder">Sorteiem a primeira pergunta para começar.</span><span id="qText"></span></div>
+      <div class="q-head">
+        <span class="q-sphere" id="qSphere">Esfera</span>
+        <span class="q-remaining" id="qRemaining"></span>
+      </div>
+      <div class="q-text" id="qTextWrap" aria-live="polite"><span class="placeholder" id="qPlaceholder">Sorteiem a primeira pergunta para começar.</span><span id="qText"></span></div>
       <button class="btn small" id="drawBtn">Sortear pergunta</button>
       <div id="answerArea" style="display:none; margin-top:18px">
+        <input type="text" id="author" class="author-input" placeholder="Quem partilhou? (opcional)" aria-label="Quem partilhou (opcional)">
         <textarea id="answer" placeholder="Registrem aqui a reflexão do grupo…"></textarea>
         <div class="row">
           <button class="btn small" id="saveBtn">Guardar reflexão</button>
-          <button class="btn ghost small" id="skipBtn">Sortear outra</button>
+          <button class="btn ghost small" id="nextQBtn">Próxima pergunta ▸</button>
         </div>
+        <p class="hint">Podem guardar várias respostas para a mesma pergunta — cada pessoa contribui. Depois, toquem em “Próxima pergunta”.</p>
       </div>
     </div>
     <div class="saved">
       <h4>Reflexões guardadas (<span id="count">0</span>)</h4>
+      <p class="saved-note" id="savedNote"></p>
       <div id="entries"><p class="empty-note">Ainda não há reflexões guardadas.</p></div>
       <div class="row" style="margin-top:10px">
         <button class="btn ghost small" id="downloadBtn">Baixar reflexões</button>
@@ -478,11 +535,14 @@ a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(
 <div class="nav">
   <button class="btn ghost" id="prevBtn">◂ Voltar</button>
   <div class="spacer"></div>
+  <div class="nav-progress" id="navProgress"></div>
+  <div class="spacer"></div>
   <button class="btn" id="nextBtn">Avançar ▸</button>
 </div>
 
 <!-- MÚSICA -->
 <div class="music">
+  <span class="music-status" id="musicStatus" role="status" aria-live="polite"></span>
   <div class="vol-panel">
     <span class="vol-ico" aria-hidden="true">♪</span>
     <input type="range" id="vol" min="0" max="100" value="45" step="1" aria-label="Volume da música" title="Volume da música">
@@ -495,6 +555,16 @@ a.credit{ color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(
 </div>
 
 <script>
+/* ====================== PERSISTÊNCIA (neste dispositivo) ====================== */
+const STORE_KEY='dccoroa-v1';
+const store={
+  ok:false,
+  d:{ reflections:[], volume:0.45, zoom:1, present:false, station:0, paths:[] },
+  load(){ try{ const r=localStorage.getItem(STORE_KEY); if(r) Object.assign(this.d, JSON.parse(r)); this.ok=true; }catch(e){ this.ok=false; } },
+  save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(this.d)); }catch(e){} }
+};
+store.load();
+
 /* ====================== DADOS ====================== */
 const STEP_NAMES = ["Abertura","O Cordeiro","O Pastor","O Rei","As Tríades","Roda de Reflexão","Caminhos","Bênção"];
 const THEMES = {
@@ -604,6 +674,9 @@ function go(i){
   const next=document.getElementById('nextBtn');
   next.style.visibility = current===stations.length-1?'hidden':'visible';
   window.scrollTo({top:0,behavior:'smooth'});
+  const np=document.getElementById('navProgress');
+  if(np) np.textContent='Etapa '+(current+1)+' de '+stations.length+' · '+STEP_NAMES[current];
+  store.d.station=current; store.save();
   if(audio.on) audio.setMood(st.dataset.theme);
 }
 document.getElementById('prevBtn').addEventListener('click',()=>go(current-1));
@@ -611,10 +684,39 @@ document.getElementById('nextBtn').addEventListener('click',()=>go(current+1));
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.go)));
 document.getElementById('restartBtn').addEventListener('click',()=>go(0));
 document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='TEXTAREA') return;
+  if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT') return;
   if(e.key==='ArrowRight') go(current+1);
   if(e.key==='ArrowLeft') go(current-1);
 });
+
+/* deslizar (swipe) no celular */
+const stageEl=document.getElementById('stage');
+let touchX=null, touchY=null;
+stageEl.addEventListener('touchstart',e=>{ const t=e.changedTouches[0]; touchX=t.clientX; touchY=t.clientY; },{passive:true});
+stageEl.addEventListener('touchend',e=>{
+  if(touchX==null) return; const t=e.changedTouches[0];
+  const dx=t.clientX-touchX, dy=t.clientY-touchY;
+  if(Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6) go(current + (dx<0?1:-1));
+  touchX=touchY=null;
+},{passive:true});
+
+/* ====================== FONTE & MODO APRESENTAÇÃO ====================== */
+let zoom = store.d.zoom || 1;
+function applyZoom(){ stageEl.style.zoom = zoom; store.d.zoom=zoom; store.save(); }
+document.getElementById('fontUp').addEventListener('click',()=>{ zoom=Math.min(1.5,+(zoom+0.1).toFixed(2)); applyZoom(); });
+document.getElementById('fontDown').addEventListener('click',()=>{ zoom=Math.max(0.8,+(zoom-0.1).toFixed(2)); applyZoom(); });
+const presentBtn=document.getElementById('presentBtn');
+function applyPresent(on){
+  document.body.classList.toggle('present',on);
+  presentBtn.classList.toggle('on',on); presentBtn.setAttribute('aria-pressed',on);
+  store.d.present=on; store.save();
+}
+presentBtn.addEventListener('click',()=>{
+  const on=!document.body.classList.contains('present');
+  applyPresent(on);
+  if(on && zoom<1.25){ zoom=1.25; applyZoom(); }
+});
+applyZoom(); applyPresent(!!store.d.present);
 
 /* ====================== TRÍADES ====================== */
 const lensTabs=document.getElementById('lensTabs');
@@ -648,7 +750,10 @@ const answerArea=document.getElementById('answerArea');
 const answerEl=document.getElementById('answer');
 const entriesEl=document.getElementById('entries');
 const countEl=document.getElementById('count');
-let activeSphere=null, queues={}, currentQ=null, reflections=[];
+let activeSphere=null, queues={}, currentQ=null;
+let reflections = store.d.reflections;
+const authorEl=document.getElementById('author');
+const qRemaining=document.getElementById('qRemaining');
 
 Object.keys(QUESTIONS).forEach(s=>{
   const b=document.createElement('button');
@@ -657,7 +762,14 @@ Object.keys(QUESTIONS).forEach(s=>{
   spheresWrap.appendChild(b);
 });
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function updateRemaining(){
+  if(!activeSphere){ qRemaining.textContent=''; return; }
+  const left = queues[activeSphere] ? queues[activeSphere].length : QUESTIONS[activeSphere].length;
+  qRemaining.textContent = 'restam '+left+' de '+QUESTIONS[activeSphere].length+' nesta esfera';
+}
+function hasDraft(){ return answerEl.value.trim()!=='' || authorEl.value.trim()!==''; }
 function draw(){
+  if(hasDraft() && !confirm('Há um registro não guardado nesta pergunta. Descartá-lo e sortear outra?')) return;
   if(!activeSphere){ activeSphere=Object.keys(QUESTIONS)[0]; [...spheresWrap.children][0].classList.add('on'); }
   if(!queues[activeSphere]||queues[activeSphere].length===0) queues[activeSphere]=shuffle(QUESTIONS[activeSphere]);
   currentQ=queues[activeSphere].pop();
@@ -665,34 +777,36 @@ function draw(){
   qSphereEl.textContent=activeSphere;
   qTextEl.textContent='“'+currentQ+'”';
   answerArea.style.display='block';
-  answerEl.value=''; answerEl.focus();
+  answerEl.value=''; authorEl.value=''; answerEl.focus();
+  updateRemaining();
 }
 document.getElementById('drawBtn').addEventListener('click',draw);
-document.getElementById('skipBtn').addEventListener('click',draw);
+document.getElementById('nextQBtn').addEventListener('click',draw);
 document.getElementById('saveBtn').addEventListener('click',()=>{
-  const txt=answerEl.value.trim();
   if(!currentQ) return;
-  reflections.push({ sphere:activeSphere, q:currentQ, a:txt||'(sem registro escrito — partilhado em voz)' });
-  renderEntries(); draw();
+  const txt=answerEl.value.trim();
+  reflections.push({ sphere:activeSphere, q:currentQ, who:authorEl.value.trim(), a:txt||'(sem registro escrito — partilhado em voz)' });
+  store.save(); renderEntries();
+  answerEl.value=''; authorEl.value=''; answerEl.focus();  /* mantém a pergunta para outra pessoa contribuir */
 });
 function renderEntries(){
   countEl.textContent=reflections.length;
   if(reflections.length===0){ entriesEl.innerHTML='<p class="empty-note">Ainda não há reflexões guardadas.</p>'; return; }
   entriesEl.innerHTML=reflections.map(r=>`
     <div class="entry">
-      <div class="e-meta">${r.sphere}</div>
+      <div class="e-meta">${esc(r.sphere)}${r.who?' · '+esc(r.who):''}</div>
       <div class="e-q">“${esc(r.q)}”</div>
       <div class="e-a">${esc(r.a)}</div>
     </div>`).join('');
 }
 function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 document.getElementById('clearBtn').addEventListener('click',()=>{
-  if(reflections.length && confirm('Limpar todas as reflexões guardadas?')){ reflections=[]; renderEntries(); }
+  if(reflections.length && confirm('Limpar todas as reflexões guardadas neste dispositivo?')){ reflections.length=0; store.save(); renderEntries(); }
 });
 document.getElementById('downloadBtn').addEventListener('click',()=>{
   let out='DA CRUZ À COROA — Reflexões do grupo\nSalmos 22, 23 e 24 · Série Orações Matinais\n'+new Date().toLocaleString('pt-BR')+'\n\n';
   if(reflections.length===0){ out+='(Nenhuma reflexão registrada.)\n'; }
-  reflections.forEach((r,i)=>{ out+=`${i+1}. [${r.sphere}] ${r.q}\n   → ${r.a}\n\n`; });
+  reflections.forEach((r,i)=>{ out+=`${i+1}. [${r.sphere}${r.who?' · '+r.who:''}] ${r.q}\n   → ${r.a}\n\n`; });
   out+='\n“Porque o Cristo que morreu por nós é o Cristo que está conosco hoje e será o Cristo que reinará para sempre sobre nós.” Amém.';
   const blob=new Blob([out],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -702,16 +816,22 @@ document.getElementById('printBtn').addEventListener('click',()=>window.print())
 
 /* ====================== CAMINHOS ====================== */
 const pathsWrap=document.getElementById('paths');
-pathsWrap.innerHTML=PATHS.map((p,i)=>`
-  <div class="path" data-i="${i}" tabindex="0" role="button" aria-pressed="false">
+pathsWrap.innerHTML=PATHS.map((p,i)=>{
+  const on=store.d.paths.includes(i);
+  return `
+  <div class="path${on?' on':''}" data-i="${i}" tabindex="0" role="button" aria-pressed="${on}">
     <div class="pn">CAMINHO ${p[0]}</div>
     <div class="pt">${p[1]}</div>
     <p>${p[2]}</p>
-    <div class="check">Assumir este caminho</div>
-  </div>`).join('');
+    <div class="check">${on?'Caminho assumido':'Assumir este caminho'}</div>
+  </div>`;}).join('');
 pathsWrap.querySelectorAll('.path').forEach(el=>{
+  const idx=+el.dataset.i;
   const toggle=()=>{ const on=el.classList.toggle('on'); el.setAttribute('aria-pressed',on);
-    el.querySelector('.check').textContent= on?'Caminho assumido':'Assumir este caminho'; };
+    el.querySelector('.check').textContent= on?'Caminho assumido':'Assumir este caminho';
+    if(on){ if(!store.d.paths.includes(idx)) store.d.paths.push(idx); }
+    else { store.d.paths=store.d.paths.filter(k=>k!==idx); }
+    store.save(); };
   el.addEventListener('click',toggle);
   el.addEventListener('keydown',e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(); } });
 });
@@ -738,25 +858,32 @@ pathsWrap.querySelectorAll('.path').forEach(el=>{
 
 /* ====================== MÚSICA AMBIENTE (faixa MP3) ====================== */
 /* Coloque o arquivo "onde-o-coracao-descansa.mp3" na mesma pasta do index.html */
-let trackVolume = 0.45;             // volume inicial da faixa (0 a 1) — ajustável pelo controle deslizante
+let trackVolume = (store.d.volume!=null) ? store.d.volume : 0.45;  // lembrado entre visitas
 const bgm = new Audio('onde-o-coracao-descansa.mp3');
 bgm.loop = true; bgm.preload = 'auto'; bgm.volume = 0;
+const musicStatus=document.getElementById('musicStatus');
+function setStatus(t){ if(musicStatus) musicStatus.textContent=t||''; }
+let musicFailed=false;
+bgm.addEventListener('playing',()=>{ if(audio.on) setStatus(''); });
+bgm.addEventListener('waiting',()=>{ if(audio.on) setStatus('carregando…'); });
+bgm.addEventListener('error',()=>{ musicFailed=true; audio.on=false; const b=document.getElementById('musicBtn'); if(b) b.classList.remove('playing'); setStatus('música indisponível'); });
 
 const audio = {
   on:false, fade:null,
   setMood(){},  /* mantido por compatibilidade com a navegação */
   start(){
     this.on = true; bgm.volume = 0;
+    if(bgm.readyState < 3) setStatus('carregando…');
     const pr = bgm.play();
     if(pr && pr.then){
-      pr.then(()=>this._fadeTo(trackVolume,1600))
-        .catch(e=>{ console.warn('Não foi possível tocar a faixa:',e); this.on=false;
+      pr.then(()=>{ this._fadeTo(trackVolume,1600); })
+        .catch(e=>{ console.warn('Não foi possível tocar a faixa:',e); this.on=false; setStatus(musicFailed?'música indisponível':'toque novamente para ouvir');
           const b=document.getElementById('musicBtn'); if(b){ b.classList.remove('playing'); b.setAttribute('aria-label','Tocar música'); } });
     } else { this._fadeTo(trackVolume,1600); }
   },
   stop(){
-    this.on = false;
-    this._fadeTo(0,900,()=>bgm.pause());
+    this.on = false; setStatus('');
+    this._fadeTo(0,900,()=>bgm.pause());  /* pausa mantém o ponto da música */
   },
   _fadeTo(target,dur,done){
     clearInterval(this.fade);
@@ -791,12 +918,20 @@ if(volSlider){
     trackVolume=volSlider.value/100;
     if(volPct) volPct.textContent=volSlider.value+'%';
     paintSlider(volSlider.value);
+    store.d.volume=trackVolume; store.save();
     if(audio.on){ clearInterval(audio.fade); bgm.volume=trackVolume; }  /* aplica na hora, sem fade */
   });
 }
 
-/* init */
-go(0);
+/* ====================== INÍCIO ====================== */
+const savedNote=document.getElementById('savedNote');
+if(savedNote){
+  savedNote.textContent = store.ok
+    ? 'As reflexões, o volume e a leitura ficam salvos neste dispositivo (use “Limpar” para apagar).'
+    : 'As reflexões ficam guardadas apenas durante esta sessão.';
+}
+renderEntries();
+go(store.d.station || 0);
 </script>
 </body>
 </html>
